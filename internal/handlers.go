@@ -47,8 +47,8 @@ func (handlers *Handlers) HandleIndex(
 ) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	t, err := template.ParseFS(templateFiles,
-		"internal/templates/layout.html",
-		"internal/templates/index.html",
+		"templates/layout.html",
+		"templates/index.html",
 	)
 	if err != nil {
 		panic(err)
