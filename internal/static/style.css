@@ -1,0 +1,203 @@
+/* reset */
+html {
+    /* fix line height in all browsers */
+    line-height: 1.15;
+    /* prevent adjustments of font size after orientation changes in iOS */
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    /* remove margin in all browsers */
+    margin: 0;
+}
+
+hr {
+    /* fix height in Firefox */
+    height: 0;
+    /* fix inheritance of border color in Firefox */
+    color: inherit;
+}
+
+abbr[title] {
+    /* fix text decoration in Chrome, Edge, Safari. */
+    text-decoration: underline dotted;
+}
+
+b,
+strong {
+    /* fix font weight in Edge and Safari */
+    font-weight: bolder;
+}
+
+code,
+kbd,
+samp,
+pre {
+    /* improve consistency of default fonts in all browsers */
+    font-family: monospace;
+    /* correct the odd 'em' font sizing in all browsers */
+    font-size: 1em;
+}
+
+small {
+    /* fix font size in all browsers */
+    font-size: 80%;
+}
+
+/* prevent sub and sup from affecting the line height in all browsers */
+sub,
+sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+sub {
+    bottom: -0.25em;
+}
+
+sup {
+    top: -0.5em;
+}
+
+table {
+    /* remove text indentation from table contents in Chrome and Safari */
+    text-indent: 0;
+    /* fix table border color inheritance in Chrome and Safari */
+    border-color: inherit;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+    /* fix font styles in all browsers */
+    font-family: inherit;
+    font-size: 100%;
+    line-height: 1.15;
+    /* remove margin in Firefox and Safari */
+    margin: 0;
+}
+
+button,
+select {
+    /* remove inheritance of text transform in Edge and Firefox */
+    text-transform: none;
+}
+
+button,
+[type='button'],
+[type='reset'],
+[type='submit'] {
+    /* fix inability to style clickable types in iOS and Safari */
+    -webkit-appearance: button;
+}
+
+/* remove inner border and padding in Firefox */
+::-moz-focus-inner {
+    border-style: none;
+    padding: 0;
+}
+
+:-moz-focusring {
+    /* restore focus styles unset by the previous rule */
+    outline: 1px dotted ButtonText;
+}
+
+:-moz-ui-invalid {
+    /* remove additional ':invalid' styles in Firefox */
+    box-shadow: none;
+}
+
+progress {
+    /* fix vertical alignment in Chrome and Firefox */
+    vertical-align: baseline;
+}
+
+::-webkit-inner-spin-button,
+::-webkit-outer-spin-button {
+    /* fix cursor style of increment and decrement buttons in Safari */
+    height: auto;
+}
+
+[type='search'] {
+    /* fix appearance in Chrome and Safari */
+    -webkit-appearance: textfield;
+    /* fix outline in Safari */
+    outline-offset: -2px;
+}
+
+::-webkit-search-decoration {
+    /* remove inner padding in Chrome and Safari on macOS */
+    -webkit-appearance: none;
+}
+
+::-webkit-file-upload-button {
+    /* fix inability to style clickable types in iOS and Safari */
+    -webkit-appearance: button;
+    /* change font properties to 'inherit' in Safari. */
+    font: inherit;
+}
+
+summary {
+    /* fix display in Chrome and Safari */
+    display: list-item;
+}
+
+/* general */
+:root {
+    --link-color: #1175e2;
+    --ascent-color: #006cdf;
+    --gray-500-color: #757575;
+    --gray-300-color: #b1b1b1;
+    --gray-200-color: #eff1f5;
+    --gray-100-color: #fafafa;
+    --green-color: #26bd60;
+    --red-color: #ff0000;
+    --purple-color: #cd1ecd;
+}
+
+/* dark mode
+ * create a new color (dark-mode-color)
+ * override existing colors */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --dark-mode-color: #212529;
+
+        --link-color: #3395ff;
+        --gray-500-color: #78828a;
+        --gray-200-color: #353535;
+        --gray-100-color: #2b2b2b;
+        --purple-color: #dd47ec;
+    }
+}
+
+html,
+body {
+    font-size: 18px;
+    font-family: sans-serif;
+    line-height: 1.5;
+}
+@media (max-width: 34rem) {
+    html,
+    body {
+        font-size: 16px;
+    }
+}
+@media (prefers-color-scheme: dark) {
+    body {
+        color: #fff;
+        background: var(--dark-mode-color);
+    }
+}
+
+a {
+    text-decoration: none;
+    color: var(--link-color);
+}
+
+a:hover {
+    text-decoration: underline;
+}
