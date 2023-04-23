@@ -1,17 +1,56 @@
 {{ define "page" }}
 <main class="document-single">
-    <h1 class="document-single-title" id="title" contenteditable>
-        {{ .Document.Title }}
-    </h1>
+    <div class="document-single-left">
+        <h1 class="document-single-title" id="title" contenteditable>
+            {{ .Document.Title }}
+        </h1>
 
-    <div class="document-single-body" id="text" contenteditable>
-        {{ .Document.Body }}
+        <div class="document-single-body" id="text" contenteditable>
+            {{ .Document.Body }}
+        </div>
+    </div>
+
+    <div class="document-single-right">
+        <div class="suggestion-original">
+            <div class="suggestion-original-content" id="sug-original">
+                <!-- placeholder -->
+            </div>
+        </div>
+
+        <div class="loading">
+            <div class="loading-indicator"></div>
+        </div>
+
+        <div class="suggestion-prediction">
+            <div class="suggestion-prediction-content" id="sug-pred1">
+                <!-- placeholder -->
+            </div>
+        </div>
+        <div class="suggestion-prediction">
+            <div class="suggestion-prediction-content" id="sug-pred2">
+                <!-- placeholder -->
+            </div>
+        </div>
+        <div class="suggestion-prediction">
+            <div class="suggestion-prediction-content" id="sug-pred3">
+                <!-- placeholder -->
+            </div>
+        </div>
     </div>
 </main>
 {{ end }}
 
 {{ define "scripts" }}
 <script>
+    var STORED_SELECTION_RANGE = null;
+
+    function cleanupSuggestions() {
+        document.getElementById('sug-original').innerText = '';
+        document.getElementById('sug-pred1').innerText = '';
+        document.getElementById('sug-pred2').innerText = '';
+        document.getElementById('sug-pred3').innerText = '';
+    }
+
     function saveDocument() {
         const data = {
             title: document.getElementById('title').innerText,
@@ -23,33 +62,58 @@
         xhr.send(JSON.stringify(data));
     }
 
-    function replaceText() {
+    function loadSuggestions() {
         const selection = window.getSelection();
         if (selection.toString()) {
+            // start loading
+            STORED_SELECTION_RANGE = selection.getRangeAt(0);
+            console.log('STORED_SELECTION_RANGE set:', STORED_SELECTION_RANGE);
+            cleanupSuggestions();
+            document.querySelector('.loading').style.display = 'block';
+
+            // show original selection
+            document.getElementById('sug-original').innerText = selection.toString();
+
+            let prompt = 'respond with three synonym of this word, separated by |: ' + selection.toString();
+            if (selection.toString().split(' ').length > 1) {
+                prompt = 'respond with three separate rephrases of this phrase, separated by |: ' + selection.toString();
+            }
+
+            // get suggestions
             const data = {
-                prompt: 'respond with one synonym of this word: ' + selection.toString(),
+                prompt,
                 model: 'gpt3p5',
             };
             const xhr = new XMLHttpRequest();
             xhr.open('POST', 'http://llmapi.sonnet18ai.com/api/v1/evaluate', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.setRequestHeader('Authorization', 'Bearer 1c6fbab8-139a-4f20-9574-0db692576222');
-            xhr.onload = function() {
+            xhr.onload = function () {
                 if (xhr.status === 200) {
                     const data = JSON.parse(xhr.response);
+                    const split = data.result.split('|');
 
-                    // replace selection
-                    const range = selection.getRangeAt(0);
-                    range.deleteContents();
-                    range.insertNode(document.createTextNode(data.result));
+                    // show suggestions
+                    document.getElementById('sug-pred1').innerText = split[0];
+                    document.getElementById('sug-pred2').innerText = split[1];
+                    document.getElementById('sug-pred3').innerText = split[2];
 
-                    saveDocument();
+                    // hide loader
+                    document.querySelector('.loading').style.display = 'none';
                 } else {
                     console.log('Request failed. Returned status of ' + xhr.status);
                 }
             };
             xhr.send(JSON.stringify(data));
         }
+    }
+
+    function replaceSelection(newText) {
+        const range = STORED_SELECTION_RANGE;
+        range.deleteContents();
+        range.insertNode(document.createTextNode(newText));
+        STORED_SELECTION_RANGE = null;
+        cleanupSuggestions();
     }
 
     window.addEventListener('DOMContentLoaded', function() {
@@ -63,8 +127,19 @@
         document.getElementById('text').addEventListener('input', saveDocument);
 
         // when user selects text, replace it
-        document.getElementById('text').addEventListener('mouseup', replaceText);
-        document.getElementById('text').addEventListener('keyup', replaceText);
+        document.getElementById('text').addEventListener('mouseup', loadSuggestions);
+        document.getElementById('text').addEventListener('keyup', loadSuggestions);
+
+        // when user clicks on a suggestion, replace the selection
+        document.getElementById('sug-pred1').addEventListener('click', function () {
+            replaceSelection(document.getElementById('sug-pred1').innerText);
+        });
+        document.getElementById('sug-pred2').addEventListener('click', function () {
+            replaceSelection(document.getElementById('sug-pred2').innerText);
+        });
+        document.getElementById('sug-pred3').addEventListener('click', function () {
+            replaceSelection(document.getElementById('sug-pred3').innerText);
+        });
     });
 </script>
 {{ end }}
