@@ -150,13 +150,12 @@ summary {
 :root {
     --link-color: #1175e2;
     --ascent-color: #006cdf;
-    --gray-500-color: #757575;
-    --gray-300-color: #b1b1b1;
-    --gray-200-color: #eff1f5;
-    --gray-100-color: #fafafa;
-    --green-color: #26bd60;
-    --red-color: #ff0000;
-    --purple-color: #cd1ecd;
+    --cyan-100: #f0f5ff;
+    --gray-800: #3f3f3f;
+    --gray-500: #757575;
+    --gray-300: #b1b1b1;
+    --gray-200: #eff1f5;
+    --gray-100: #fafafa;
 }
 
 /* dark mode
@@ -167,10 +166,9 @@ summary {
         --dark-mode-color: #212529;
 
         --link-color: #3395ff;
-        --gray-500-color: #78828a;
-        --gray-200-color: #353535;
-        --gray-100-color: #2b2b2b;
-        --purple-color: #dd47ec;
+        --gray-500: #78828a;
+        --gray-200: #353535;
+        --gray-100: #2b2b2b;
     }
 }
 
@@ -200,4 +198,49 @@ a {
 
 a:hover {
     text-decoration: underline;
+}
+
+nav {
+    background: var(--gray-800);
+    color: #fff;
+    padding: 8px 16px;
+}
+
+nav a {
+    color: #fff;
+}
+
+h1 {
+    font-weight: 400;
+}
+
+main {
+    padding: 0 16px;
+}
+
+.document-list {
+    max-width: 800px;
+}
+
+.document-list-item {
+    display: block;
+    color: inherit;
+    background: var(--gray-200);
+    margin-bottom: 16px;
+    padding: 16px 24px;
+    cursor: pointer;
+}
+
+.document-list-item:hover {
+    text-decoration: none;
+    background: var(--cyan-100);
+}
+
+.document-list-item-title {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.document-list-item-body {
+    font-size: 14px;
 }

@@ -62,8 +62,26 @@ func (s *SQLStore) GetDocuments(
 		Find(&documents).
 		Error
 	if err != nil {
-		return nil, fmt.Errorf("failed to get documents: %w", err)
+		return nil, fmt.Errorf("failed to get document list: %w", err)
 	}
 
 	return documents, nil
+}
+
+func (s *SQLStore) GetDocument(
+	ctx context.Context,
+	id uint,
+) (*Document, error) {
+	query := s.db.WithContext(ctx)
+
+	var document Document
+	err := query.
+		Where("document_id = ?", id).
+		Find(&document).
+		Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get document single: %w", err)
+	}
+
+	return &document, nil
 }

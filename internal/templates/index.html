@@ -1,5 +1,16 @@
 {{ define "page" }}
 <main>
-    <h1>hi from sonnet18</h1>
+    <h1>Texts</h1>
+
+    <div class="document-list">
+        {{ range .Documents }}
+        <a class="document-list-item" href="/text/{{ .DocumentID }}">
+            <div class="document-list-item-title">{{ .Title }}</div>
+            <div class="document-list-item-body">
+                {{ .Body }}
+            </div>
+        </a>
+        {{ end }}
+    </div>
 </main>
 {{ end }}
