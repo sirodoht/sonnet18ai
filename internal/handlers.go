@@ -111,12 +111,15 @@ func (handlers *Handlers) HandleDocument(
 		handlers.logger.Error("could not get document")
 		panic(err)
 	}
+	DocumentBody := strings.ReplaceAll(document.Body, "\n", "<br>")
 	values := struct {
-		Document *Document
-		Token    string
+		Document     *Document
+		DocumentBody template.HTML
+		Token        string
 	}{
-		Document: document,
-		Token:    os.Getenv("LLMAPI_TOKEN"),
+		Document:     document,
+		DocumentBody: template.HTML(DocumentBody),
+		Token:        os.Getenv("LLMAPI_TOKEN"),
 	}
 	err = t.Execute(w, values)
 	if err != nil {
