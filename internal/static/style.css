@@ -249,6 +249,18 @@ main {
     font-size: 14px;
 }
 
+.document-list-item-footer {
+    text-align: right;
+}
+
+.document-list-item-footer input[type='submit'] {
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    background: none;
+    color: var(--gray-500);
+}
+
 .document-single {
     height: calc(100% - 100px);
     display: flex;
