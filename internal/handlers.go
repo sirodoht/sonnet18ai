@@ -33,6 +33,7 @@ func NewHandlers(logger *zap.Logger, store *SQLStore) *Handlers {
 func (handlers *Handlers) Register(r *chi.Mux) {
 	// register handlers
 	r.Get("/", handlers.HandleIndex)
+	r.Get("/text/new", handlers.HandleDocumentNew)
 	r.Get("/text/{id}", handlers.HandleDocument)
 	r.Post("/text/{id}/update", handlers.HandleDocumentUpdate)
 
@@ -159,4 +160,57 @@ func (handlers *Handlers) HandleDocumentUpdate(
 	// respond
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+}
+
+func (handlers *Handlers) HandleDocumentNew(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
+	// create document on database
+	id, err := handlers.store.CreateDocument(r.Context())
+	if err != nil {
+		handlers.logger.Error("could not update document")
+		panic(err)
+	}
+
+	// redirect to document
+	http.Redirect(w, r, fmt.Sprintf("/text/%d", id), http.StatusSeeOther)
+}
+
+type (
+	EvaluateRequest struct {
+		Prompt string `json:"prompt"`
+		Model  string `json:"model"`
+	}
+	EvaluateResponse struct {
+		Result string `json:"result"`
+	}
+)
+
+func (handlers *Handlers) HandleEvaluate(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("Authorization")
+	token = strings.TrimPrefix(token, "Bearer ")
+	if token != os.Getenv("LLMAPI_TOKEN") {
+		fmt.Println("got", token, "expected", os.Getenv("LLMAPI_TOKEN"))
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req EvaluateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result, err := handlers.llmClient.Evaluate(r.Context(), req.Model, req.Prompt)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res := EvaluateResponse{Result: result}
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

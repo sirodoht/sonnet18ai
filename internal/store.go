@@ -24,6 +24,24 @@ func NewSQLStore(gdb *gorm.DB) *SQLStore {
 	}
 }
 
+func (s *SQLStore) CreateDocument(
+	ctx context.Context,
+) (uint, error) {
+	query := s.db.WithContext(ctx)
+
+	document := &Document{
+		Title: "Untitled",
+	}
+
+	// save new document
+	err := query.Save(document).Error
+	if err != nil {
+		return 0, fmt.Errorf("failed to save document: %w", err)
+	}
+
+	return document.DocumentID, nil
+}
+
 func (s *SQLStore) UpdateDocument(
 	ctx context.Context,
 	id uint,
