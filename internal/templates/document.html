@@ -15,8 +15,17 @@
             <div class="saving-text" id="save-alert">text autosaved now</div>
         </div>
 
-        <div class="suggestion-help" id="suggestion-help">
+        <div class="suggestion-help">
             Mark any word or phrase you want to change
+        </div>
+
+        <div class="suggestion-controls" id="suggestion-controls">
+            <button id="sug-simplify">simplify</button>
+            <button id="sug-shorten">shorten</button>
+            <button id="sug-friendlier">friendlier</button>
+            <button id="sug-stricter">stricter</button>
+            <button id="sug-hilarious">hilarious</button>
+            <button id="sug-shakespeare">shakespeare</button>
         </div>
 
         <div class="suggestion-original">
@@ -50,6 +59,10 @@
 
 {{ define "scripts" }}
 <script>
+    let PROMPT_SUFFIX = ' — separate each phrase with |, ';
+    PROMPT_SUFFIX += 'and do not say anything else other than your suggestions, ';
+    PROMPT_SUFFIX += 'do not number them, and give me exactly three, do not prefix them with anything, ';
+    PROMPT_SUFFIX += 'do not put them in quotes, do not write anything like here are your three phrases';
     var STORED_SELECTION_RANGE = null;
 
     function cleanupSuggestions() {
@@ -57,7 +70,6 @@
         document.getElementById('sug-pred1').innerText = '';
         document.getElementById('sug-pred2').innerText = '';
         document.getElementById('sug-pred3').innerText = '';
-        document.getElementById('suggestion-help').style.display = 'block';
     }
 
     function saveDocument() {
@@ -89,15 +101,17 @@
             // store selection and start loading
             STORED_SELECTION_RANGE = selection.getRangeAt(0);
             cleanupSuggestions();
-            document.getElementById('suggestion-help').style.display = 'none';
             document.getElementById('loading').style.display = 'block';
+            document.getElementById('suggestion-controls').style.opacity = '1';
 
             // show original selection
             document.getElementById('sug-original').innerText = selection.toString();
 
             let prompt = 'respond with three synonyms of this word, separated by |: ' + selection.toString();
             if (selection.toString().split(' ').length > 1) {
-                prompt = 'respond with three separate rephrases of this phrase, separated by |: ' + selection.toString();
+                prompt = 'generate three phrases which are similar to the following: '
+                prompt += '"' + selection.toString() + '"';
+                prompt += PROMPT_SUFFIX;
             }
 
             // get suggestions
@@ -137,6 +151,60 @@
         cleanupSuggestions();
     }
 
+    function replaceWithPrompt(promptType) {
+        // build prompt
+        const selection = window.getSelection();
+        let prompt = 'generate three phrases which are similar to the following but ';
+        if (promptType === 'simplify') {
+            prompt += 'they sound simpler: ';
+        } else if (promptType === 'shorten') {
+            prompt += 'are shorter: ';
+        } else if (promptType === 'friendlier') {
+            prompt += 'sound friendlier: ';
+        } else if (promptType === 'stricter') {
+            prompt += 'sound stricter: ';
+        } else if (promptType === 'hilarious') {
+            prompt += 'make it sound hilarious: ';
+        } else if (promptType === 'shakespeare') {
+            prompt += 'make it sound like Shakespeare wrote it: ';
+        }
+        prompt += '"' + selection.toString() + '"';
+        prompt += PROMPT_SUFFIX;
+
+        // setup UI
+        cleanupSuggestions();
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('suggestion-controls').style.opacity = '1';
+        document.getElementById('sug-original').innerText = selection.toString();
+
+        // make request to API
+        const data = {
+            prompt,
+            model: 'gpt3p5',
+        };
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/v1/evaluate', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('Authorization', 'Bearer {{ .Token }}');
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                const data = JSON.parse(xhr.response);
+                const split = data.result.split('|');
+
+                // show suggestions
+                document.getElementById('sug-pred1').innerText = split[0];
+                document.getElementById('sug-pred2').innerText = split[1];
+                document.getElementById('sug-pred3').innerText = split[2];
+
+                // hide loader
+                document.getElementById('loading').style.display = 'none';
+            } else {
+                console.log('Request failed. Returned status of ' + xhr.status);
+            }
+        };
+        xhr.send(JSON.stringify(data));
+    }
+
     window.addEventListener('DOMContentLoaded', function() {
         if (window.location.pathname.indexOf('/text/') !== 0) {
             // do nothing if it's not a text page
@@ -160,6 +228,26 @@
         });
         document.getElementById('sug-pred3').addEventListener('click', function () {
             replaceSelection(document.getElementById('sug-pred3').innerText);
+        });
+
+        // when user clicks on a suggestion/prompt button, replace with that
+        document.getElementById('sug-simplify').addEventListener('click', function () {
+            replaceWithPrompt('simplify');
+        });
+        document.getElementById('sug-shorten').addEventListener('click', function () {
+            replaceWithPrompt('shorten');
+        });
+        document.getElementById('sug-friendlier').addEventListener('click', function () {
+            replaceWithPrompt('friendlier');
+        });
+        document.getElementById('sug-stricter').addEventListener('click', function () {
+            replaceWithPrompt('stricter');
+        });
+        document.getElementById('sug-hilarious').addEventListener('click', function () {
+            replaceWithPrompt('hilarious');
+        });
+        document.getElementById('sug-shakespeare').addEventListener('click', function () {
+            replaceWithPrompt('shakespeare');
         });
     });
 </script>

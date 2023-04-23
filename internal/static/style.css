@@ -152,13 +152,18 @@ summary {
     --ascent-color: #006cdf;
     --cyan-100: #f0f5ff;
     --cyan-200: #dbf2ff;
+    --cyan-300: #c1e9ff;
     --cyan-400: #a6dfff;
-    --gray-800: #3f3f3f;
-    --gray-500: #757575;
+    --yellow-100: #fff9e6;
+    --yellow-200: #fff3cc;
+    --yellow-300: #ffecb3;
+    --yellow-400: #ffe699;
+    --gray-100: #fafafa;
+    --gray-200: #eff1f5;
     --gray-300: #b1b1b1;
     --gray-400: #9e9e9e;
-    --gray-200: #eff1f5;
-    --gray-100: #fafafa;
+    --gray-500: #757575;
+    --gray-800: #3f3f3f;
 }
 
 html,
@@ -297,6 +302,23 @@ main {
     color: var(--gray-400);
     font-style: italic;
     margin-top: 28px;
+}
+
+.suggestion-controls {
+    margin-top: 16px;
+    opacity: 0;
+}
+
+.suggestion-controls button {
+    border: none;
+    background: var(--yellow-200);
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--gray-500);
+}
+
+.suggestion-controls button:hover {
+    background: var(--yellow-400);
 }
 
 .suggestion-original {
