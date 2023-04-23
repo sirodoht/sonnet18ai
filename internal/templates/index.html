@@ -1,8 +1,8 @@
 {{ define "page" }}
-<main>
+<main class="document-list">
     <h1>Texts</h1>
 
-    <div class="document-list">
+    <div>
         {{ range .Documents }}
         <a class="document-list-item" href="/text/{{ .DocumentID }}">
             <div class="document-list-item-title">{{ .Title }}</div>
@@ -13,4 +13,7 @@
         {{ end }}
     </div>
 </main>
+{{ end }}
+
+{{ define "scripts" }}
 {{ end }}

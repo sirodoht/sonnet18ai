@@ -1,9 +1,70 @@
 {{ define "page" }}
-<main>
-    <h1>{{ .Document.Title }}</h1>
+<main class="document-single">
+    <h1 class="document-single-title" id="title" contenteditable>
+        {{ .Document.Title }}
+    </h1>
 
-    <div class="document-single">
+    <div class="document-single-body" id="text" contenteditable>
         {{ .Document.Body }}
     </div>
 </main>
+{{ end }}
+
+{{ define "scripts" }}
+<script>
+    function saveDocument() {
+        const data = {
+            title: document.getElementById('title').innerText,
+            body: document.getElementById('text').innerText,
+        };
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/text/' + window.location.pathname.split('/')[2] + '/update', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(data));
+    }
+
+    function replaceText() {
+        const selection = window.getSelection();
+        if (selection.toString()) {
+            const data = {
+                prompt: 'respond with one synonym of this word: ' + selection.toString(),
+                model: 'gpt3p5',
+            };
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'http://llmapi.sonnet18ai.com/api/v1/evaluate', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Authorization', 'Bearer 1c6fbab8-139a-4f20-9574-0db692576222');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.response);
+
+                    // replace selection
+                    const range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(document.createTextNode(data.result));
+
+                    saveDocument();
+                } else {
+                    console.log('Request failed. Returned status of ' + xhr.status);
+                }
+            };
+            xhr.send(JSON.stringify(data));
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+        if (window.location.pathname.indexOf('/text/') !== 0) {
+            // do nothing if it's not a text page
+            return;
+        }
+
+        // save the document when the user changes title or body
+        document.getElementById('title').addEventListener('input', saveDocument);
+        document.getElementById('text').addEventListener('input', saveDocument);
+
+        // when user selects text, replace it
+        document.getElementById('text').addEventListener('mouseup', replaceText);
+        document.getElementById('text').addEventListener('keyup', replaceText);
+    });
+</script>
 {{ end }}

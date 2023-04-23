@@ -5,10 +5,7 @@ import (
 	"fmt"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
-
-var ErrNotFound = fmt.Errorf("not found")
 
 type SQLStore struct {
 	db *gorm.DB
@@ -27,25 +24,32 @@ func NewSQLStore(gdb *gorm.DB) *SQLStore {
 	}
 }
 
-func (s *SQLStore) PutDocument(
+func (s *SQLStore) UpdateDocument(
 	ctx context.Context,
-	req *Document,
+	id uint,
+	newTitle string,
+	newBody string,
 ) error {
-	if req == nil {
-		return fmt.Errorf("failed to put document: nil request")
-	}
+	query := s.db.WithContext(ctx)
 
-	err := s.db.
-		WithContext(ctx).
-		Clauses(
-			clause.OnConflict{
-				UpdateAll: true,
-			},
-		).
-		Create(req).
+	// retrieve the document to update
+	var document Document
+	err := query.
+		Where("document_id = ?", id).
+		Find(&document).
 		Error
 	if err != nil {
-		return fmt.Errorf("failed to put document: %w", err)
+		return fmt.Errorf("failed to find document to update: %w", err)
+	}
+
+	// update document values
+	document.Title = newTitle
+	document.Body = newBody
+
+	// save updated document
+	err = query.Save(&document).Error
+	if err != nil {
+		return fmt.Errorf("failed to save document: %w", err)
 	}
 
 	return nil

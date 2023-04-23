@@ -244,3 +244,11 @@ main {
 .document-list-item-body {
     font-size: 14px;
 }
+
+.document-single {
+    max-width: 800px;
+}
+
+.document-single-title {
+    border: 1px solid var(--gray-300);
+}
