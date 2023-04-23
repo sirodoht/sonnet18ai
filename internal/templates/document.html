@@ -205,6 +205,16 @@
         xhr.send(JSON.stringify(data));
     }
 
+    function debounce(func, delay) {
+        let timerId;
+        return function (...args) {
+            clearTimeout(timerId);
+            timerId = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
+        };
+    }
+
     window.addEventListener('DOMContentLoaded', function() {
         if (window.location.pathname.indexOf('/text/') !== 0) {
             // do nothing if it's not a text page
@@ -212,12 +222,12 @@
         }
 
         // save the document when the user changes title or body
-        document.getElementById('title').addEventListener('input', saveDocument);
-        document.getElementById('text').addEventListener('input', saveDocument);
+        document.getElementById('title').addEventListener('input', debounce(saveDocument, 500));
+        document.getElementById('text').addEventListener('input', debounce(saveDocument, 500));
 
         // when user selects text, replace it
-        document.getElementById('text').addEventListener('mouseup', loadSuggestions);
-        document.getElementById('text').addEventListener('keyup', loadSuggestions);
+        document.getElementById('text').addEventListener('mouseup', debounce(loadSuggestions, 200));
+        document.getElementById('text').addEventListener('keyup', debounce(loadSuggestions, 250));
 
         // when user clicks on a suggestion, replace the selection
         document.getElementById('sug-pred1').addEventListener('click', function () {
@@ -231,23 +241,11 @@
         });
 
         // when user clicks on a suggestion/prompt button, replace with that
-        document.getElementById('sug-simplify').addEventListener('click', function () {
-            replaceWithPrompt('simplify');
-        });
-        document.getElementById('sug-shorten').addEventListener('click', function () {
-            replaceWithPrompt('shorten');
-        });
-        document.getElementById('sug-friendlier').addEventListener('click', function () {
-            replaceWithPrompt('friendlier');
-        });
-        document.getElementById('sug-stricter').addEventListener('click', function () {
-            replaceWithPrompt('stricter');
-        });
-        document.getElementById('sug-hilarious').addEventListener('click', function () {
-            replaceWithPrompt('hilarious');
-        });
-        document.getElementById('sug-shakespeare').addEventListener('click', function () {
-            replaceWithPrompt('shakespeare');
+        const suggestions = ['simplify', 'shorten', 'friendlier', 'stricter', 'hilarious', 'shakespeare'];
+        suggestions.forEach(suggestion => {
+            document.getElementById('sug-' + suggestion).addEventListener('click', function () {
+                replaceWithPrompt(suggestion);
+            });
         });
     });
 </script>
