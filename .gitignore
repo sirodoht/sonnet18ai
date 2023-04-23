@@ -1,3 +1,4 @@
 sonnet18.sqlite
 sonnet18ai
 tmp/
+.envrc
