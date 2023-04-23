@@ -6,18 +6,26 @@
         </h1>
 
         <div class="document-single-body" id="text" contenteditable>
-            {{ .Document.Body }}
+            {{ .DocumentBody }}
         </div>
     </div>
 
     <div class="document-single-right">
+        <div class="saving">
+            <div class="saving-text" id="save-alert">text autosaved now</div>
+        </div>
+
+        <div class="suggestion-help" id="suggestion-help">
+            Mark any word or phrase you want to change
+        </div>
+
         <div class="suggestion-original">
             <div class="suggestion-original-content" id="sug-original">
                 <!-- placeholder -->
             </div>
         </div>
 
-        <div class="loading">
+        <div class="loading" id="loading">
             <div class="loading-indicator"></div>
         </div>
 
@@ -49,6 +57,7 @@
         document.getElementById('sug-pred1').innerText = '';
         document.getElementById('sug-pred2').innerText = '';
         document.getElementById('sug-pred3').innerText = '';
+        document.getElementById('suggestion-help').style.display = 'block';
     }
 
     function saveDocument() {
@@ -59,16 +68,29 @@
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/text/' + window.location.pathname.split('/')[2] + '/update', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                document.getElementById('save-alert').style.transition = 'none';
+                document.getElementById('save-alert').style.opacity = 1;
+                setTimeout(function () {
+                    document.getElementById('save-alert').style.opacity = 0;
+                    document.getElementById('save-alert').style.transition = 'opacity 0.3s ease-out';
+                }, 2000);
+            } else {
+                document.getElementById('save-alert').innerText = 'error saving text';
+            }
+        };
         xhr.send(JSON.stringify(data));
     }
 
     function loadSuggestions() {
         const selection = window.getSelection();
         if (selection.toString()) {
-            // start loading
+            // store selection and start loading
             STORED_SELECTION_RANGE = selection.getRangeAt(0);
             cleanupSuggestions();
-            document.querySelector('.loading').style.display = 'block';
+            document.getElementById('suggestion-help').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
 
             // show original selection
             document.getElementById('sug-original').innerText = selection.toString();
@@ -98,7 +120,7 @@
                     document.getElementById('sug-pred3').innerText = split[2];
 
                     // hide loader
-                    document.querySelector('.loading').style.display = 'none';
+                    document.getElementById('loading').style.display = 'none';
                 } else {
                     console.log('Request failed. Returned status of ' + xhr.status);
                 }
@@ -120,6 +142,9 @@
             // do nothing if it's not a text page
             return;
         }
+
+        // init saving loader
+        // document.getElementById('save-alert').style.opacity = 0;
 
         // save the document when the user changes title or body
         document.getElementById('title').addEventListener('input', saveDocument);
