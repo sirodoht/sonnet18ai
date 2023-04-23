@@ -42,6 +42,23 @@ func (s *SQLStore) CreateDocument(
 	return document.DocumentID, nil
 }
 
+func (s *SQLStore) DeleteDocument(
+	ctx context.Context,
+	id uint,
+) error {
+	query := s.db.WithContext(ctx)
+
+	// save new document
+	err := query.Delete(&Document{
+		DocumentID: id,
+	}).Error
+	if err != nil {
+		return fmt.Errorf("failed to save document: %w", err)
+	}
+
+	return nil
+}
+
 func (s *SQLStore) UpdateDocument(
 	ctx context.Context,
 	id uint,

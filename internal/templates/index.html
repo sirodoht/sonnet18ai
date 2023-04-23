@@ -1,11 +1,25 @@
 {{ define "page" }}
+<style>
+    form, input {
+        display: inline;
+    }
+</style>
 <main class="document-list">
     <h1>Texts</h1>
 
     <div>
         {{ range .Documents }}
         <a class="document-list-item" href="/text/{{ .DocumentID }}">
-            <div class="document-list-item-title">{{ .Title }}</div>
+            <div class="document-list-item-title">{{ .Title }} -
+                <form
+                    method="POST"
+                    action="/text/delete?id={{ .DocumentID }}"
+                    onsubmit="if(!confirm('Are you sure you want to delete this document?')){return false;}"
+                >
+                    <input type="hidden" name="id" value="{{ .DocumentID }}">
+                    <input type="submit" value="delete">
+                </form>
+            </div>
             <div class="document-list-item-body">
                 {{ .Body }}
             </div>

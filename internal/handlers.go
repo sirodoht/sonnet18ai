@@ -44,6 +44,7 @@ func (handlers *Handlers) Register(r *chi.Mux) {
 	// register handlers
 	r.Get("/", handlers.HandleIndex)
 	r.Get("/text/new", handlers.HandleDocumentNew)
+	r.Post("/text/delete", handlers.HandleDocumentDelete)
 	r.Get("/text/{id}", handlers.HandleDocument)
 	r.Post("/text/{id}/update", handlers.HandleDocumentUpdate)
 	r.Post("/api/v1/evaluate", handlers.HandleEvaluate)
@@ -188,6 +189,28 @@ func (handlers *Handlers) HandleDocumentNew(
 
 	// redirect to document
 	http.Redirect(w, r, fmt.Sprintf("/text/%d", id), http.StatusSeeOther)
+}
+
+func (handlers *Handlers) HandleDocumentDelete(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
+	id, err := strconv.ParseInt(r.URL.Query().Get("id"), 10, 64)
+	uID := uint(id)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	// delete document on database
+	err = handlers.store.DeleteDocument(r.Context(), uID)
+	if err != nil {
+		handlers.logger.Error("could not update document")
+		panic(err)
+	}
+
+	// redirect to document
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 type (
