@@ -148,6 +148,7 @@
         range.deleteContents();
         range.insertNode(document.createTextNode(newText));
         STORED_SELECTION_RANGE = null;
+        saveDocument();
         cleanupSuggestions();
     }
 
