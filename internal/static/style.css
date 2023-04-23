@@ -231,6 +231,10 @@ main {
     }
 }
 
+.toolset {
+    margin-bottom: 16px;
+}
+
 .document-list {
     max-width: 800px;
 }

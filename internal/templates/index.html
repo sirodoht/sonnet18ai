@@ -7,6 +7,12 @@
 <main class="document-list">
     <h1>Texts</h1>
 
+    <div class="toolset">
+        [
+        <a href="/text/new">add new text</a>
+        ]
+    </div>
+
     <div>
         {{ range .Documents }}
         <a class="document-list-item" href="/text/{{ .DocumentID }}">
