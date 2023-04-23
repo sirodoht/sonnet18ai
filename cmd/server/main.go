@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/geoah/go-llm"
+	"github.com/sashabaranov/go-openai"
 	"github.com/sirodoht/sonnet18ai/internal"
 	"go.uber.org/zap"
 	"gorm.io/driver/sqlite"
@@ -48,8 +50,21 @@ func main() {
 	// Construct a new store
 	store := internal.NewSQLStore(db)
 
+	// Construct a new llm client
+	client := openai.NewClient(os.Getenv("OPENAI_TOKEN"))
+	evaluators := map[string]llm.Evaluator{
+		"gpt3p5": llm.NewChatGPT3p5(client),
+		"gpt4":   llm.NewChatGPT4(client),
+		// "llama7b": llm.NewLlama("./models/7B/ggml-model-f32.bin"),
+	}
+
+	llmClient := llm.NewService(
+		os.Getenv("PREFIX"),
+		evaluators,
+	)
+
 	// Construct a new router
-	handlers := internal.NewHandlers(logger, store)
+	handlers := internal.NewHandlers(logger, store, llmClient)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -64,10 +79,14 @@ func main() {
 	handlers.Register(r)
 
 	// serve
-	fmt.Println("Listening on http://127.0.0.1:8000/")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
+	fmt.Println("Listening on", port, "...")
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         ":8000",
+		Addr:         ":" + port,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}

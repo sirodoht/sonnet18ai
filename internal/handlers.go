@@ -3,11 +3,15 @@ package internal
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 
+	llm "github.com/geoah/go-llm"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
@@ -19,14 +23,20 @@ var staticFiles embed.FS
 var templateFiles embed.FS
 
 type Handlers struct {
-	logger *zap.Logger
-	store  *SQLStore
+	logger    *zap.Logger
+	store     *SQLStore
+	llmClient *llm.Service
 }
 
-func NewHandlers(logger *zap.Logger, store *SQLStore) *Handlers {
+func NewHandlers(
+	logger *zap.Logger,
+	store *SQLStore,
+	llmClient *llm.Service,
+) *Handlers {
 	return &Handlers{
-		logger: logger,
-		store:  store,
+		logger:    logger,
+		store:     store,
+		llmClient: llmClient,
 	}
 }
 
@@ -36,6 +46,7 @@ func (handlers *Handlers) Register(r *chi.Mux) {
 	r.Get("/text/new", handlers.HandleDocumentNew)
 	r.Get("/text/{id}", handlers.HandleDocument)
 	r.Post("/text/{id}/update", handlers.HandleDocumentUpdate)
+	r.Post("/api/v1/evaluate", handlers.HandleEvaluate)
 
 	// static files
 	fs := http.FileServer(http.FS(staticFiles))
@@ -101,8 +112,10 @@ func (handlers *Handlers) HandleDocument(
 	}
 	values := struct {
 		Document *Document
+		Token    string
 	}{
 		Document: document,
+		Token:    os.Getenv("LLMAPI_TOKEN"),
 	}
 	err = t.Execute(w, values)
 	if err != nil {
