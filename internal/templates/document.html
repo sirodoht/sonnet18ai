@@ -67,7 +67,6 @@
         if (selection.toString()) {
             // start loading
             STORED_SELECTION_RANGE = selection.getRangeAt(0);
-            console.log('STORED_SELECTION_RANGE set:', STORED_SELECTION_RANGE);
             cleanupSuggestions();
             document.querySelector('.loading').style.display = 'block';
 
