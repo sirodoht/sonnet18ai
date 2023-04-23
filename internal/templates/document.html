@@ -73,7 +73,7 @@
             // show original selection
             document.getElementById('sug-original').innerText = selection.toString();
 
-            let prompt = 'respond with three synonym of this word, separated by |: ' + selection.toString();
+            let prompt = 'respond with three synonyms of this word, separated by |: ' + selection.toString();
             if (selection.toString().split(' ').length > 1) {
                 prompt = 'respond with three separate rephrases of this phrase, separated by |: ' + selection.toString();
             }
