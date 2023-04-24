@@ -20,12 +20,12 @@
         </div>
 
         <div class="suggestion-controls" id="suggestion-controls">
+            <button id="sug-synonyms">synonyms</button>
+            <button id="sug-rephrase">rephrase</button>
             <button id="sug-simplify">simplify</button>
             <button id="sug-shorten">shorten</button>
             <button id="sug-friendlier">friendlier</button>
             <button id="sug-stricter">stricter</button>
-            <button id="sug-hilarious">hilarious</button>
-            <button id="sug-shakespeare">shakespeare</button>
         </div>
 
         <div class="suggestion-original">
@@ -53,6 +53,13 @@
                 <!-- placeholder -->
             </div>
         </div>
+
+        <div class="suggestion-history">
+            <div class="suggestion-history-title">History</div>
+            <div class="suggestion-history-content" id="history">
+                <!-- placeholder -->
+            </div>
+        </div>
     </div>
 </main>
 {{ end }}
@@ -62,8 +69,10 @@
     let PROMPT_SUFFIX = ' — separate each phrase with |, ';
     PROMPT_SUFFIX += 'and do not say anything else other than your suggestions, ';
     PROMPT_SUFFIX += 'do not number them, and give me exactly three, do not prefix them with anything, ';
-    PROMPT_SUFFIX += 'do not put them in quotes, do not write anything like here are your three phrases';
-    var STORED_SELECTION_RANGE = null;
+    PROMPT_SUFFIX += 'do not put them in quotes, do not write anything like here are your three phrases, ';
+    PROMPT_SUFFIX += 'do not capitalize them';
+    let STORED_SELECTION_STRING = null;
+    let STORED_SELECTION_RANGE = null;
 
     function cleanupSuggestions() {
         document.getElementById('sug-original').innerText = '';
@@ -95,51 +104,42 @@
         xhr.send(JSON.stringify(data));
     }
 
-    function loadSuggestions() {
+    function showControls(onewordmode) {
+        document.getElementById('suggestion-controls').style.opacity = '1';
+        if (onewordmode) {
+            document.getElementById('sug-synonyms').style.display = 'inline-block';
+            document.getElementById('sug-rephrase').style.display = 'none';
+            document.getElementById('sug-simplify').style.display = 'none';
+            document.getElementById('sug-shorten').style.display = 'none';
+            document.getElementById('sug-friendlier').style.display = 'none';
+            document.getElementById('sug-stricter').style.display = 'none';
+        } else {
+            document.getElementById('sug-synonyms').style.display = 'none';
+            document.getElementById('sug-rephrase').style.display = 'inline-block';
+            document.getElementById('sug-simplify').style.display = 'inline-block';
+            document.getElementById('sug-shorten').style.display = 'inline-block';
+            document.getElementById('sug-friendlier').style.display = 'inline-block';
+            document.getElementById('sug-stricter').style.display = 'inline-block';
+        }
+    }
+
+    function prepareMarkedText() {
         const selection = window.getSelection();
         if (selection.toString()) {
             // store selection and start loading
             STORED_SELECTION_RANGE = selection.getRangeAt(0);
-            cleanupSuggestions();
-            document.getElementById('loading').style.display = 'block';
+            STORED_SELECTION_STRING = selection.toString();
             document.getElementById('suggestion-controls').style.opacity = '1';
 
             // show original selection
             document.getElementById('sug-original').innerText = selection.toString();
 
-            let prompt = 'respond with three synonyms of this word, separated by |: ' + selection.toString();
             if (selection.toString().split(' ').length > 1) {
-                prompt = 'generate three phrases which are similar to the following: '
-                prompt += '"' + selection.toString() + '"';
-                prompt += PROMPT_SUFFIX;
+                // one word, show synonyms only
+                showControls(false);
+            } else {
+                showControls(true);
             }
-
-            // get suggestions
-            const data = {
-                prompt,
-                model: 'gpt3p5',
-            };
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/api/v1/evaluate', true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.setRequestHeader('Authorization', 'Bearer {{ .Token }}');
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    const data = JSON.parse(xhr.response);
-                    const split = data.result.split('|');
-
-                    // show suggestions
-                    document.getElementById('sug-pred1').innerText = split[0];
-                    document.getElementById('sug-pred2').innerText = split[1];
-                    document.getElementById('sug-pred3').innerText = split[2];
-
-                    // hide loader
-                    document.getElementById('loading').style.display = 'none';
-                } else {
-                    console.log('Request failed. Returned status of ' + xhr.status);
-                }
-            };
-            xhr.send(JSON.stringify(data));
         }
     }
 
@@ -154,29 +154,32 @@
 
     function replaceWithPrompt(promptType) {
         // build prompt
-        const selection = window.getSelection();
-        let prompt = 'generate three phrases which are similar to the following but ';
-        if (promptType === 'simplify') {
-            prompt += 'they sound simpler: ';
+        let prompt = 'generate three phrases which are similar to the following';
+        if (promptType === 'synonyms') {
+            prompt = 'generate three synonyms of this word: ';
+        } else if (promptType === 'rephrase') {
+            prompt += ': ';
+        } else if (promptType === 'simplify') {
+            prompt += 'but they sound simpler: ';
         } else if (promptType === 'shorten') {
-            prompt += 'are shorter: ';
+            prompt += 'but are shorter: ';
         } else if (promptType === 'friendlier') {
-            prompt += 'sound friendlier: ';
+            prompt += 'but sound friendlier: ';
         } else if (promptType === 'stricter') {
-            prompt += 'sound stricter: ';
+            prompt += 'but sound stricter: ';
         } else if (promptType === 'hilarious') {
-            prompt += 'make it sound hilarious: ';
+            prompt += 'but make it sound hilarious: ';
         } else if (promptType === 'shakespeare') {
-            prompt += 'make it sound like Shakespeare wrote it: ';
+            prompt += 'but make it sound like Shakespeare wrote it: ';
         }
-        prompt += '"' + selection.toString() + '"';
+        prompt += '"' + STORED_SELECTION_STRING + '"';
         prompt += PROMPT_SUFFIX;
 
         // setup UI
         cleanupSuggestions();
         document.getElementById('loading').style.display = 'block';
         document.getElementById('suggestion-controls').style.opacity = '1';
-        document.getElementById('sug-original').innerText = selection.toString();
+        document.getElementById('sug-original').innerText = STORED_SELECTION_STRING;
 
         // make request to API
         const data = {
@@ -199,11 +202,22 @@
 
                 // hide loader
                 document.getElementById('loading').style.display = 'none';
+
+                // append to history
+                logHistory(split);
             } else {
                 console.log('Request failed. Returned status of ' + xhr.status);
             }
         };
         xhr.send(JSON.stringify(data));
+    }
+
+    function logHistory(dataArray) {
+        document.querySelector('.suggestion-history').style.display = 'block';
+        const historyItem = document.createElement('div');
+        historyItem.classList.add('suggestion-history-item');
+        historyItem.textContent = STORED_SELECTION_STRING + ': ' + dataArray.map(str => str.trim()).join(', ');
+        document.getElementById('history').insertBefore(historyItem, document.getElementById('history').firstChild);
     }
 
     function debounce(func, delay) {
@@ -227,8 +241,8 @@
         document.getElementById('text').addEventListener('input', debounce(saveDocument, 500));
 
         // when user selects text, replace it
-        document.getElementById('text').addEventListener('mouseup', debounce(loadSuggestions, 200));
-        document.getElementById('text').addEventListener('keyup', debounce(loadSuggestions, 250));
+        document.getElementById('text').addEventListener('mouseup', prepareMarkedText);
+        document.getElementById('text').addEventListener('keyup', prepareMarkedText);
 
         // when user clicks on a suggestion, replace the selection
         document.getElementById('sug-pred1').addEventListener('click', function () {
@@ -242,7 +256,14 @@
         });
 
         // when user clicks on a suggestion/prompt button, replace with that
-        const suggestions = ['simplify', 'shorten', 'friendlier', 'stricter', 'hilarious', 'shakespeare'];
+        const suggestions = [
+            'synonyms',
+            'rephrase',
+            'simplify',
+            'shorten',
+            'friendlier',
+            'stricter',
+        ];
         suggestions.forEach(suggestion => {
             document.getElementById('sug-' + suggestion).addEventListener('click', function () {
                 replaceWithPrompt(suggestion);

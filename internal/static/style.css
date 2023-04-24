@@ -344,3 +344,19 @@ main {
 .suggestion-prediction-content:hover {
     background: var(--cyan-200);
 }
+
+.suggestion-history {
+    display: none;
+    font-size: 14px;
+}
+
+.suggestion-history-title {
+    display: block;
+    border-bottom: 1px solid black;
+    margin-top: 32px;
+    margin-bottom: 8px;
+}
+
+.suggestion-history-item {
+    margin-bottom: 8px;
+}
